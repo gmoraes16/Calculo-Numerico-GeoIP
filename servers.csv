@@ -1,0 +1,14 @@
+name,host,lat,lon,city,type,status
+USP (IME - São Paulo),ime.usp.br,-23.5594,-46.7314,São Paulo - BR,Universidade,Confirmado
+Unicamp (IC - Campinas),ic.unicamp.br,-22.8144,-47.0647,Campinas - BR,Universidade,Confirmado
+UFRJ (Rio de Janeiro),ufrj.br,-22.8631,-43.2307,Rio de Janeiro - BR,Universidade,Confirmado
+UFMG (DCC - Belo Horizonte),dcc.ufmg.br,-19.8691,-43.9664,Belo Horizonte - BR,Universidade,Confirmado
+UFRGS (INF - Porto Alegre),inf.ufrgs.br,-30.0700,-51.1200,Porto Alegre - BR,Universidade,Confirmado
+UnB (Brasília),unb.br,-15.7634,-47.8703,Brasília - BR,Universidade,Confirmado
+UFMS (FACOM - Campo Grande),facom.ufms.br,-20.5044,-54.6144,Campo Grande - BR,Universidade,Confirmado
+UBA (Exactas - Buenos Aires),exactas.uba.ar,-34.5425,-58.4419,Buenos Aires - AR,Universidade,Confirmado
+NTP.br (Fortaleza - CE),b.ntp.br,-3.7319,-38.5267,Fortaleza - BR,NTP Ponto Neutro,Confirmado
+NTP.br (Curitiba - PR),c.ntp.br,-25.4284,-49.2733,Curitiba - BR,NTP Ponto Neutro,Confirmado
+NIC.br (São Paulo - SP),registro.br,-23.6015,-46.6946,São Paulo - BR,Ponto Neutro SP,Confirmado
+NTP.br (São Paulo - SP),a.ntp.br,-23.6015,-46.6946,São Paulo - BR,NTP Ponto Neutro,Confirmado
+CMU (Pittsburgh - EUA),cmu.edu,40.4433,-79.9436,Pittsburgh - EUA,Universidade,Confirmado
