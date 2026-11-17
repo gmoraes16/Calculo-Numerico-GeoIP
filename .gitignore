@@ -1,0 +1,19 @@
+# Cache e arquivos compilados do Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Cache de testes (pytest)
+.pytest_cache/
+
+# Ambientes virtuais
+venv/
+.venv/
+env/
+
+# Arquivos temporários do sistema operacional e editor
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.tmp
+*.log

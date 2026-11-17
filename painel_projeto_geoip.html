@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel de Controle — SDD Geolocalização de IP (Cálculo Numérico)</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --primary-hover: #0284c7;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --purple: #a855f7;
+      --accent: #6366f1;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 24px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .title-area h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .title-area p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 4px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button:hover {
+      background-color: var(--card-border);
+    }
+
+    button.btn-primary {
+      background-color: var(--primary);
+      color: #0f172a;
+      border-color: var(--primary);
+      font-weight: 600;
+    }
+
+    button.btn-primary:hover {
+      background-color: var(--primary-hover);
+      color: #fff;
+    }
+
+    button.btn-success {
+      background-color: #065f46;
+      border-color: var(--success);
+      color: #a7f3d0;
+    }
+
+    /* Stats Grid */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .stat-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-top: 2px;
+    }
+
+    /* Progress bar */
+    .progress-wrap {
+      margin-top: 8px;
+    }
+
+    .progress-bar-bg {
+      background: #334155;
+      height: 10px;
+      border-radius: 5px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      background: linear-gradient(90deg, var(--primary), var(--success));
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      padding: 12px 18px;
+      font-size: 0.95rem;
+      border-radius: 0;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 600;
+    }
+
+    /* Tab Content */
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* Section Cards */
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin: 16px 0 8px 0;
+    }
+
+    /* Team Member assignment */
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 12px;
+    }
+
+    .member-card {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .member-name {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    .member-ra {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input, select, textarea {
+      background: #1e293b;
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 0.85rem;
+      width: 100%;
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    /* Checklists and Phase List */
+    .phase-block {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .phase-header {
+      padding: 14px 18px;
+      background: rgba(30, 41, 59, 0.7);
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .phase-header:hover {
+      background: rgba(51, 65, 85, 0.7);
+    }
+
+    .phase-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .phase-badge {
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .phase-dates {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .phase-body {
+      padding: 16px 18px;
+    }
+
+    .task-item {
+      display: grid;
+      grid-template-columns: auto 1fr 140px 140px;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.4);
+    }
+
+    .task-item:last-child {
+      border-bottom: none;
+    }
+
+    .task-check {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: var(--primary);
+    }
+
+    .task-text {
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    .task-item.completed .task-text {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    /* Decision Matrix Table */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 0.85rem;
+    }
+
+    .data-table th, .data-table td {
+      border: 1px solid var(--card-border);
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    .data-table th {
+      background: #0f172a;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+    }
+
+    .data-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Numerical Calculus Advice Box */
+    .callout {
+      border-left: 4px solid var(--primary);
+      background: rgba(56, 189, 248, 0.08);
+      border-radius: 0 8px 8px 0;
+      padding: 16px;
+      margin: 16px 0;
+      font-size: 0.9rem;
+    }
+
+    .callout-warning {
+      border-left-color: var(--warning);
+      background: rgba(245, 158, 11, 0.08);
+    }
+
+    .callout-danger {
+      border-left-color: var(--danger);
+      background: rgba(239, 68, 68, 0.08);
+    }
+
+    .callout-success {
+      border-left-color: var(--success);
+      background: rgba(16, 185, 129, 0.08);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-cn {
+      background: #0284c7;
+      color: white;
+    }
+
+    .badge-out {
+      background: #dc2626;
+      color: white;
+    }
+
+    .badge-warn {
+      background: #d97706;
+      color: white;
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--card-bg);
+      border: 1px solid var(--primary);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      font-size: 0.9rem;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .task-item {
+        grid-template-columns: auto 1fr;
+        gap: 8px;
+      }
+      .task-item > select, .task-item > input {
+        grid-column: span 2;
+      }
+      body {
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <div class="header-top">
+      <div class="title-area">
+        <h1>📍 Painel Interativo: Geolocalização por Latência de Rede</h1>
+        <p>Projeto Final de Cálculo Numérico · Gauss-Newton, Cholesky, Householder (QR) e Análise de Condicionamento</p>
+      </div>
+      <div class="top-actions">
+        <button class="btn-primary" onclick="saveToStorage(true)">💾 Salvar</button>
+        <button onclick="exportDataJSON()">📥 Exportar Backup</button>
+        <button onclick="document.getElementById('importFile').click()">📤 Importar Backup</button>
+        <input type="file" id="importFile" style="display:none" onchange="importDataJSON(event)" accept=".json">
+        <button onclick="resetDefaults()">🔄 Restaurar Padrões</button>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-label">Prazo de Entrega</div>
+        <div class="stat-value" style="color: var(--warning);">04/12/2026</div>
+        <div class="stat-label" id="daysLeftText" style="margin-top: 4px;">-- dias restantes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Congelamento do Código</div>
+        <div class="stat-value" style="color: var(--primary);">26/11/2026</div>
+        <div class="stat-label" style="margin-top: 4px;">Marco de estabilização</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Progresso Geral</div>
+        <div class="stat-value" id="progressPercent" style="color: var(--success);">0%</div>
+        <div class="stat-label" id="taskCountText">0 / 0 concluídos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Fase Crítica Imediata</div>
+        <div class="stat-value" style="font-size: 1.1rem; color: #38bdf8;">Fase 1, 2 & Ping (7)</div>
+        <div class="stat-label" style="margin-top: 4px;">Medições contínuas RTT</div>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-bar-bg">
+        <div class="progress-fill" id="progressBar"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('tab-decisoes')">🎯 O que Falta Decidir (Check-in)</button>
+    <button class="tab-btn" onclick="switchTab('tab-cn-orientacoes')">🧠 Guia & Alerta: Cálculo Numérico</button>
+    <button class="tab-btn" onclick="switchTab('tab-cronograma')">📅 Fases & Checklist Passo a Passo</button>
+    <button class="tab-btn" onclick="switchTab('tab-servidores')">🌐 Lista de Servidores (Fase 7)</button>
+    <button class="tab-btn" onclick="switchTab('tab-experimentos')">🔬 Matriz de Experimentos</button>
+    <button class="tab-btn" onclick="switchTab('tab-arquitetura')">📁 Arquitetura & Fórmulas</button>
+  </div>
+
+  <!-- TAB 1: DECISÕES PENDENTES -->
+  <div id="tab-decisoes" class="tab-panel active">
+    
+    <div class="card">
+      <h2>👥 1. Divisão de Tarefas do Grupo</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 12px;">
+        Defina qual membro assume a liderança de cada frente de trabalho. Edite os campos e salve.
+      </p>
+
+      <div class="team-grid">
+        <!-- Pessoa A -->
+        <div class="member-card">
+          <div class="member-name">👤 Pessoa A — Modelo & Gauss-Newton</div>
+          <div class="form-group">
+            <label>Integrante Responsável</label>
+            <select id="role_a_person" onchange="autoSave()">
+              <option value="Gabriel Santana">Gabriel Santana Albuquerque (177927)</option>
+              <option value="Luís Fernando">Luís Fernando Giaquinto Zólio (185241)</option>
+              <option value="Lucas dos Santos">Lucas dos Santos Silva (176570)</option>
+              <option value="Luís Gustavo">Luís Gustavo Cardoso (185627)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Módulos de Código</label>
+            <input type="text" value="geo.py, model.py, gauss_newton.py" readonly style="opacity: 0.8;">
+          </div>
+          <div class="form-group">
+            <label>Anotações / Status</label>
+            <textarea id="role_a_notes" oninput="autoSave()" placeholder="Ex: Derivada analítica vs diferenças finitas..."></textarea>
+          </div>
+        </div>
+
+        <!-- Pessoa B -->
+        <div class="member-card">
+          <div class="member-name">👤 Pessoa B — Solvers & Álgebra Numérica</div>
+          <div class="form-group">
+            <label>Integrante Responsável</label>
+            <select id="role_b_person" onchange="autoSave()">
+              <option value="Luís Fernando" selected>Luís Fernando Giaquinto Zólio (185241)</option>
+              <option value="Gabriel Santana">Gabriel Santana Albuquerque (177927)</option>
+              <option value="Lucas dos Santos">Lucas dos Santos Silva (176570)</option>
+              <option value="Luís Gustavo">Luís Gustavo Cardoso (185627)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Módulos de Código</label>
+            <input type="text" value="solvers.py (Cholesky, Householder QR, float32/64)" readonly style="opacity: 0.8;">
+          </div>
+          <div class="form-group">
+            <label>Anotações / Status</label>
+            <textarea id="role_b_notes" oninput="autoSave()" placeholder="Ex: Validar com numpy.linalg.lstsq no pytest..."></textarea>
+          </div>
+        </div>
+
+        <!-- Pessoa C -->
+        <div class="member-card">
+          <div class="member-name">👤 Pessoa C — Sintético, DOP & Monte Carlo</div>
+          <div class="form-group">
+            <label>Integrante Responsável</label>
+            <select id="role_c_person" onchange="autoSave()">
+              <option value="Lucas dos Santos" selected>Lucas dos Santos Silva (176570)</option>
+              <option value="Gabriel Santana">Gabriel Santana Albuquerque (177927)</option>
+              <option value="Luís Fernando">Luís Fernando Giaquinto Zólio (185241)</option>
+              <option value="Luís Gustavo">Luís Gustavo Cardoso (185627)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Módulos de Código</label>
+            <input type="text" value="synthetic.py, dop.py, montecarlo.py" readonly style="opacity: 0.8;">
+          </div>
+          <div class="form-group">
+            <label>Anotações / Status</label>
+            <textarea id="role_c_notes" oninput="autoSave()" placeholder="Ex: Geometrias boa/ruim e relação erro ~ sigma * PDOP..."></textarea>
+          </div>
+        </div>
+
+        <!-- Pessoa D -->
+        <div class="member-card">
+          <div class="member-name">👤 Pessoa D — Dados Reais & Relatório</div>
+          <div class="form-group">
+            <label>Integrante Responsável</label>
+            <select id="role_d_person" onchange="autoSave()">
+              <option value="Luís Gustavo" selected>Luís Gustavo Cardoso (185627)</option>
+              <option value="Gabriel Santana">Gabriel Santana Albuquerque (177927)</option>
+              <option value="Luís Fernando">Luís Fernando Giaquinto Zólio (185241)</option>
+              <option value="Lucas dos Santos">Lucas dos Santos Silva (176570)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Módulos de Código / Documentação</label>
+            <input type="text" value="real_data.py, script de ping, LaTeX Overleaf" readonly style="opacity: 0.8;">
+          </div>
+          <div class="form-group">
+            <label>Anotações / Status</label>
+            <textarea id="role_d_notes" oninput="autoSave()" placeholder="Ex: Script de ping agendado, universidades cadastradas..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Decisões Metodológicas e Técnicas -->
+    <div class="card">
+      <h2>⚙️ 2. Decisões Técnicas a Registrar</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width: 28%;">Decisão de Projeto</th>
+            <th style="width: 32%;">Opção Escolhida</th>
+            <th>Justificativa / Impacto no Relatório</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Jacobiana: Analítica vs Diferenças Finitas</strong></td>
+            <td>
+              <select id="dec_jacobiana" onchange="autoSave()">
+                <option value="Ambas (Analítica validada por DF)" selected>Ambas (Analítica no código + teste pytest por Diferenças Finitas)</option>
+                <option value="Apenas Diferenças Finitas Centrais">Apenas Diferenças Finitas Centrais (Mais seguro/menos bug)</option>
+                <option value="Apenas Analítica">Apenas Analítica (Fórmulas trigonométricas)</option>
+              </select>
+            </td>
+            <td><input type="text" id="dec_jacobiana_just" oninput="autoSave()" placeholder="Evita erros manuais na diferenciação do Haversine"></td>
+          </tr>
+          <tr>
+            <td><strong>Trabalhar em km ou metros/segundos?</strong></td>
+            <td>
+              <select id="dec_unidades" onchange="autoSave()">
+                <option value="km e beta = v*b em km" selected>km e beta = v*b em km (Recomendado no SDD)</option>
+                <option value="segundos e ms">ms direto no vetor de resíduos</option>
+              </select>
+            </td>
+            <td><input type="text" id="dec_unidades_just" oninput="autoSave()" placeholder="Mantém as colunas de G na mesma escala (melhora κ(G))"></td>
+          </tr>
+          <tr>
+            <td><strong>Parâmetro de Velocidade da Rede (v)</strong></td>
+            <td>
+              <input type="text" id="dec_v" oninput="autoSave()" value="100.0 km / ms (2/3 da vel. da luz)">
+            </td>
+            <td><input type="text" id="dec_v_just" oninput="autoSave()" placeholder="Valor padrão da literatura para fibra óptica"></td>
+          </tr>
+          <tr>
+            <td><strong>Critério de Parada Padrão</strong></td>
+            <td>
+              <input type="text" id="dec_tol" oninput="autoSave()" value="tol_x = 1e-3 km (1 metro), max_iter = 50">
+            </td>
+            <td><input type="text" id="dec_tol_just" oninput="autoSave()" placeholder="Se resíduo estagnar ou oscilar por 3 passos, reportar"></td>
+          </tr>
+          <tr>
+            <td><strong>Formato do Relatório Final</strong></td>
+            <td>
+              <select id="dec_relatorio" onchange="autoSave()">
+                <option value="LaTeX (Overleaf)" selected>LaTeX (Overleaf) - Padrão ABNT/SBC</option>
+                <option value="Typst">Typst (Moderno, rápido)</option>
+                <option value="Word / Google Docs">Word / Google Docs</option>
+              </select>
+            </td>
+            <td><input type="text" id="dec_relatorio_just" oninput="autoSave()" placeholder="Facilita equações e tabelas de experimentos"></td>
+          </tr>
+          <tr>
+            <td><strong>Chute Inicial para Dados Reais</strong></td>
+            <td>
+              <select id="dec_chute" onchange="autoSave()">
+                <option value="Centroide dos servidores" selected>Centroide (média das lat/lon dos servidores mais próximos)</option>
+                <option value="Centro geográfico do Brasil (15°S, 47°W)">Centro do Brasil (ponto neutro)</option>
+                <option value="Zero arbitrário (0°, 0°)">Origem (mostrar convergência global)</option>
+              </select>
+            </td>
+            <td><input type="text" id="dec_chute_just" oninput="autoSave()" placeholder="Evita cair em mínimos locais espúrios de Gauss-Newton"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- TAB 2: ALERTA E GUIA DE CÁLCULO NUMÉRICO -->
+  <div id="tab-cn-orientacoes" class="tab-panel">
+    <div class="card">
+      <h2>🧠 Guia Anti-Pânico: O que Realmente Importa em Cálculo Numérico</h2>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">
+        Seu receio de <em>"usar coisas que não vimos em aula e colocar coisas complexas demais"</em> é super compreensível e muito saudável! Veja o que é estritamente Cálculo Numérico e onde você <strong>não deve</strong> inventar moda:
+      </p>
+
+      <div class="callout callout-success">
+        <h3 style="color: #34d399; margin-top: 0;">✅ O que É o Coração de Cálculo Numérico (O que o Professor Quer Ver)</h3>
+        <ul style="margin-left: 20px; font-size: 0.9rem; display: flex; flex-direction: column; gap: 8px;">
+          <li><strong>Método de Gauss-Newton:</strong> É simplesmente a extensão do <em>Método de Newton-Raphson</em> para sistemas retangulares ($m > n$, mais equações do que incógnitas). A cada iteração lineariza $r(\theta)$ e resolve um problema de Mínimos Quadrados Linear para achar o passo $\delta_k$.</li>
+          <li><strong>Equações Normais via Cholesky:</strong> Resolver $(G^T G) \delta = -G^T r$. Como $G^T G$ é simétrica e positiva definida, fatora-se com Cholesky ($L L^T$). Isso é 100% conteúdo clássico da disciplina!</li>
+          <li><strong>Fatoração QR (Householder):</strong> Fatorar $G = Q R$ com matrizes ortogonais de reflexão de Householder e resolver $R \delta = -Q^T r$ por substituição regressiva. É a alternativa clássica às Equações Normais.</li>
+          <li><strong>Análise de Erro e Ponto Flutuante (float32 vs float64):</strong> A teoria diz que o número de condição das equações normais é $\kappa(G^T G) = \kappa(G)^2$, enquanto no QR é apenas $\kappa(G)$. Em float32 ($\epsilon \approx 10^{-7}$), as normais perdem todos os dígitos válidos em $\kappa \approx 10^{3.5} \approx 3000$! <em>Demonstrar isso graficamente no trabalho garante a nota máxima de Cálculo Numérico.</em></li>
+          <li><strong>Diferenças Finitas:</strong> Derivação numérica para conferir a Jacobiana analítica.</li>
+        </ul>
+      </div>
+
+      <div class="callout callout-danger">
+        <h3 style="color: #f87171; margin-top: 0;">❌ O que NÃO É Cálculo Numérico (NÃO Complicar Aqui!)</h3>
+        <ul style="margin-left: 20px; font-size: 0.9rem; display: flex; flex-direction: column; gap: 8px;">
+          <li><strong>Geometria Esférica / Haversine:</strong> É só trigonometria. Não gaste dias sofrendo com derivadas analíticas complexas: se a Jacobiana analítica der dor de cabeça, você pode implementar a Jacobiana usando <em>Diferenças Finitas Centrais</em> (que é matéria de Cálculo Numérico!).</li>
+          <li><strong>Levenberg-Marquardt (LM):</strong> Deixe fora de escopo conforme o SDD planejou. Só adicione se sobrar muito tempo e se o Gauss-Newton falhar.</li>
+          <li><strong>Algoritmos de Rede e Traceroute:</strong> Não precisa entender roteamento BGP, filas de roteadores, nem topologia. Apenas pegue o menor ping (`min(RTT)`), converta para km ($d = 100 \times RTT$) e pronto.</li>
+          <li><strong>Elipsoide WGS84:</strong> Use a Terra como uma esfera perfeita ($R = 6371$ km). A diferença é de 0,3%, desprezível frente ao atraso de rede.</li>
+          <li><strong>DOP (Dilution of Precision):</strong> Parece termo militar de GPS, mas matematicamente é só a matriz de covariância linearizada $Q = (G^T G)^{-1}$. Não precisa ler manuais do exército americano sobre GPS!</li>
+        </ul>
+      </div>
+
+      <div class="callout callout-warning">
+        <h3 style="color: #fbbf24; margin-top: 0;">⚠️ O Único Erro Fatal em Trabalhos dessa Matéria</h3>
+        <p style="font-size: 0.9rem;">
+          O único erro grave seria usar <code>scipy.optimize.least_squares</code> ou <code>numpy.linalg.lstsq</code> no meio do seu código final sem implementar os métodos na mão. 
+          <strong>Regra de ouro:</strong> Vocês devem codificar a fatoração de Cholesky, a reflexão de Householder (QR), a substituição direta/regressiva e o laço de Gauss-Newton. As funções do SciPy/NumPy devem ser usadas <strong>apenas nos testes do pytest</strong> como gabarito comparativo!
+        </p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+        <div class="card" style="background:#0f172a; margin:0;">
+          <h4 style="color: var(--primary); margin-bottom:8px;">💡 Dica de Ouro para a Jacobiana</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">
+            Se derivar o Haversine em latitude/longitude em radianos estiver dando erro de escala, implemente a derivada numérica:
+            <br><code>J[i, 0] = (haversine(lat+h, lon, s_lat, s_lon) - haversine(lat-h, lon, s_lat, s_lon)) / (2*h)</code>
+            <br>Com $h = 10^{-6}$ radianos (~6 metros). O Gauss-Newton converte exatamente igual e você tem zero risco de errar a derivada na mão!
+          </p>
+        </div>
+        <div class="card" style="background:#0f172a; margin:0;">
+          <h4 style="color: var(--primary); margin-bottom:8px;">💡 Dica de Ouro para Chute Inicial</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">
+            Em problemas não lineares, se o chute inicial for muito absurdo, o método pode divergir.
+            Basta fazer o chute inicial ser a média das coordenadas dos servidores (ou a posição geográfica do Brasil). No relatório, você mostra que com chute perto ele converge em 4 iterações, e com chute no Polo Norte ele diverge (mostrando o comportamento local de Newton).
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: CRONOGRAMA & FASES -->
+  <div id="tab-cronograma" class="tab-panel">
+    <div class="card">
+      <h2>📅 Cronograma & Fases Passo a Passo (26/10 a 04/12)</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">
+        Marque as tarefas conforme forem executadas. O progresso é salvo localmente e atualiza a barra geral.
+      </p>
+
+      <!-- FASE 1 -->
+      <div class="phase-block">
+        <div class="phase-header" onclick="togglePhase('p1_body')">
+          <div class="phase-title-wrap">
+            <span class="phase-badge">Fase 1</span>
+            <strong>Setup, Revisão Bibliográfica & Divisão de Tarefas</strong>
+          </div>
+          <span class="phase-dates">26/10 – 27/10</span>
+        </div>
+        <div class="phase-body" id="p1_body">
+          <div class="task-item" id="task_f1_1">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f1_1')">
+            <span class="task-text">Revisão bibliográfica enxuta: Strang & Borre (GPS) e Trefethen & Bau (QR e condicionamento)</span>
+            <select onchange="autoSave()"><option>Todos</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+          <div class="task-item" id="task_f1_2">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f1_2')">
+            <span class="task-text">Definir e confirmar responsáveis (Pessoas A, B, C, D)</span>
+            <select onchange="autoSave()"><option>Todos</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+          <div class="task-item" id="task_f1_3">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f1_3')">
+            <span class="task-text">Criar repositório Git, README.md e requirements.txt</span>
+            <select onchange="autoSave()"><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+          <div class="task-item" id="task_f1_4">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f1_4')">
+            <span class="task-text">Escolher lista preliminar de servidores para ping contínuo</span>
+            <select onchange="autoSave()"><option>Luís G.</option><option>Lucas</option><option>Gabriel</option><option>Luís F.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+        </div>
+      </div>
+
+      <!-- FASE 2 -->
+      <div class="phase-block">
+        <div class="phase-header" onclick="togglePhase('p2_body')">
+          <div class="phase-title-wrap">
+            <span class="phase-badge">Fase 2</span>
+            <strong>Modelagem Matemática & Testes da Jacobiana</strong>
+          </div>
+          <span class="phase-dates">27/10 – 29/10</span>
+        </div>
+        <div class="phase-body" id="p2_body">
+          <div class="task-item" id="task_f2_1">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f2_1')">
+            <span class="task-text">Implementar haversine() em geo.py e testar com distâncias conhecidas (SP-Rio, SP-Lisboa)</span>
+            <select onchange="autoSave()"><option>Pessoa A</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+          <div class="task-item" id="task_f2_2">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f2_2')">
+            <span class="task-text">Implementar residuals() e jacobian() em km em model.py</span>
+            <select onchange="autoSave()"><option>Pessoa A</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+          <div class="task-item" id="task_f2_3">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f2_3')">
+            <span class="task-text">Criar test_jacobiana.py: validar analítica vs diferenças finitas (erro rel &lt; 1e-6)</span>
+            <select onchange="autoSave()"><option>Pessoa A</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+          <div class="task-item" id="task_f2_4">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f2_4')">
+            <span class="task-text">Documentar conversão RTT → km (v ≈ 100 km/ms) e variável beta = v*b</span>
+            <select onchange="autoSave()"><option>Pessoa A</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+        </div>
+      </div>
+
+      <!-- FASE 3 -->
+      <div class="phase-block">
+        <div class="phase-header" onclick="togglePhase('p3_body')">
+          <div class="phase-title-wrap">
+            <span class="phase-badge">Fase 3</span>
+            <strong>Gauss-Newton com Equações Normais (Cholesky)</strong>
+          </div>
+          <span class="phase-dates">29/10 – 06/11 (Marco 06/11)</span>
+        </div>
+        <div class="phase-body" id="p3_body">
+          <div class="task-item" id="task_f3_1">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f3_1')">
+            <span class="task-text">Implementar Cholesky próprio e solve_normal(G, r) em solvers.py</span>
+            <select onchange="autoSave()"><option>Pessoa B</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+          <div class="task-item" id="task_f3_2">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f3_2')">
+            <span class="task-text">Implementar laço gauss_newton() com histórico de ||r|| e ||delta|| por iteração</span>
+            <select onchange="autoSave()"><option>Pessoa A</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+          <div class="task-item" id="task_f3_3">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f3_3')">
+            <span class="task-text">Criar gerador sintético (synthetic.py): 6-10 servidores, alvo SP, ruído gaussiano</span>
+            <select onchange="autoSave()"><option>Pessoa C</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+          <div class="task-item" id="task_f3_4">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f3_4')">
+            <span class="task-text">Teste de consistência: sem ruído, recupera parâmetros com erro &lt; 1e-8</span>
+            <select onchange="autoSave()"><option>Pessoa A</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+          <div class="task-item" id="task_f3_5">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f3_5')">
+            <span class="task-text">Exp01: Convergência a partir de chutes perto, médio e distante (log-plot de ||delta||)</span>
+            <select onchange="autoSave()"><option>Pessoa C</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+        </div>
+      </div>
+
+      <!-- FASE 4 -->
+      <div class="phase-block">
+        <div class="phase-header" onclick="togglePhase('p4_body')">
+          <div class="phase-title-wrap">
+            <span class="phase-badge">Fase 4</span>
+            <strong>Fatoração QR (Householder) & Comparação float32/float64</strong>
+          </div>
+          <span class="phase-dates">04/11 – 11/11 (Marco 13/11)</span>
+        </div>
+        <div class="phase-body" id="p4_body">
+          <div class="task-item" id="task_f4_1">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f4_1')">
+            <span class="task-text">Implementar QR via reflexão de Householder próprio em solvers.py</span>
+            <select onchange="autoSave()"><option>Pessoa B</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+          <div class="task-item" id="task_f4_2">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f4_2')">
+            <span class="task-text">Testar QR contra numpy.linalg.lstsq (erro &lt; 1e-10 em float64)</span>
+            <select onchange="autoSave()"><option>Pessoa B</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+          <div class="task-item" id="task_f4_3">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f4_3')">
+            <span class="task-text">Exp02: Normais vs QR em matrizes com kappa de 10^0 a 10^10 (gráfico log-log de 4 curvas)</span>
+            <select onchange="autoSave()"><option>Pessoa B</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+        </div>
+      </div>
+
+      <!-- FASE 5 -->
+      <div class="phase-block">
+        <div class="phase-header" onclick="togglePhase('p5_body')">
+          <div class="phase-title-wrap">
+            <span class="phase-badge">Fase 5</span>
+            <strong>DOP (Diluição de Precisão) & Geometrias</strong>
+          </div>
+          <span class="phase-dates">10/11 – 13/11</span>
+        </div>
+        <div class="phase-body" id="p5_body">
+          <div class="task-item" id="task_f5_1">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f5_1')">
+            <span class="task-text">Implementar dop_metrics(G) em dop.py: GDOP, PDOP, cond(G)</span>
+            <select onchange="autoSave()"><option>Pessoa C</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+          <div class="task-item" id="task_f5_2">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f5_2')">
+            <span class="task-text">Definir geometrias: Boa (360° ao redor), Ruim (colineares ou só de um lado)</span>
+            <select onchange="autoSave()"><option>Pessoa C</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+          <div class="task-item" id="task_f5_3">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f5_3')">
+            <span class="task-text">Exp03: Tabela Geometria x (PDOP, GDOP, kappa, erro médio)</span>
+            <select onchange="autoSave()"><option>Pessoa C</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+        </div>
+      </div>
+
+      <!-- FASE 6 -->
+      <div class="phase-block">
+        <div class="phase-header" onclick="togglePhase('p6_body')">
+          <div class="phase-title-wrap">
+            <span class="phase-badge">Fase 6</span>
+            <strong>Simulação de Monte Carlo</strong>
+          </div>
+          <span class="phase-dates">16/11 – 19/11 (Marco 19/11)</span>
+        </div>
+        <div class="phase-body" id="p6_body">
+          <div class="task-item" id="task_f6_1">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f6_1')">
+            <span class="task-text">Rodar N >= 1000 realizações para sigmas de ruído (0.5 a 10 ms) em montecarlo.py</span>
+            <select onchange="autoSave()"><option>Pessoa C</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+          <div class="task-item" id="task_f6_2">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f6_2')">
+            <span class="task-text">Validar hipótese: erro_RMS ≈ sigma_km * PDOP (plot empírico vs previsto)</span>
+            <select onchange="autoSave()"><option>Pessoa C</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+        </div>
+      </div>
+
+      <!-- FASE 7 -->
+      <div class="phase-block">
+        <div class="phase-header" onclick="togglePhase('p7_body')">
+          <div class="phase-title-wrap">
+            <span class="phase-badge">Fase 7</span>
+            <strong>Coleta de Dados Reais de Ping (Em Paralelo)</strong>
+          </div>
+          <span class="phase-dates">28/10 – 13/11 (Iniciar já!)</span>
+        </div>
+        <div class="phase-body" id="p7_body">
+          <div class="task-item" id="task_f7_1">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f7_1')">
+            <span class="task-text">Montar servers.csv com 10-15 servidores públicos (universidades e pontos neutros)</span>
+            <select onchange="autoSave()"><option>Pessoa D</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+          <div class="task-item" id="task_f7_2">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f7_2')">
+            <span class="task-text">Escrever e agendar script de ping (Agendador de Tarefas do Windows / cron)</span>
+            <select onchange="autoSave()"><option>Pessoa D</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+          <div class="task-item" id="task_f7_3">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f7_3')">
+            <span class="task-text">Pré-processamento: filtrar min(RTT) para eliminar filas e descartar anycast suspeito</span>
+            <select onchange="autoSave()"><option>Pessoa D</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+        </div>
+      </div>
+
+      <!-- FASE 8 -->
+      <div class="phase-block">
+        <div class="phase-header" onclick="togglePhase('p8_body')">
+          <div class="phase-title-wrap">
+            <span class="phase-badge">Fase 8</span>
+            <strong>Localização com Dados Reais</strong>
+          </div>
+          <span class="phase-dates">17/11 – 24/11</span>
+        </div>
+        <div class="phase-body" id="p8_body">
+          <div class="task-item" id="task_f8_1">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f8_1')">
+            <span class="task-text">Executar Gauss-Newton (QR float64) com min(RTT); alvo conhecido: São Paulo</span>
+            <select onchange="autoSave()"><option>Pessoa D</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+          <div class="task-item" id="task_f8_2">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f8_2')">
+            <span class="task-text">Calcular erro em km e comparar erro observado vs erro previsto por PDOP</span>
+            <select onchange="autoSave()"><option>Pessoa D</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+        </div>
+      </div>
+
+      <!-- FASE 9, 10, 11 -->
+      <div class="phase-block">
+        <div class="phase-header" onclick="togglePhase('p9_body')">
+          <div class="phase-title-wrap">
+            <span class="phase-badge">Fase 9, 10 & 11</span>
+            <strong>Congelamento do Código, Relatório & Apresentação</strong>
+          </div>
+          <span class="phase-dates">23/11 – 04/12 (Entrega Final)</span>
+        </div>
+        <div class="phase-body" id="p9_body">
+          <div class="task-item" id="task_f9_1">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f9_1')">
+            <span class="task-text">🔒 CONGELAMENTO DO CÓDIGO EM 26/11: todos os scripts e figuras gerados</span>
+            <select onchange="autoSave()"><option>Todos</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+          <div class="task-item" id="task_f9_2">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f9_2')">
+            <span class="task-text">Escrever discussão de limitações (assimetria do erro por inflação de RTT)</span>
+            <select onchange="autoSave()"><option>Pessoa D</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+          <div class="task-item" id="task_f9_3">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f9_3')">
+            <span class="task-text">Redigir Relatório Final (rascunho até 26/11; versão final até 01/12)</span>
+            <select onchange="autoSave()"><option>Pessoa D</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+          <div class="task-item" id="task_f9_4">
+            <input type="checkbox" class="task-check" onchange="toggleTask('task_f9_4')">
+            <span class="task-text">Slides prontos e ensaio cronometrado da apresentação (12-15 slides)</span>
+            <select onchange="autoSave()"><option>Todos</option><option>Gabriel</option><option>Luís F.</option><option>Lucas</option><option>Luís G.</option></select>
+            <input type="text" placeholder="Notas..." oninput="autoSave()">
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB 4: LISTA DE SERVIDORES -->
+  <div id="tab-servidores" class="tab-panel">
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div>
+          <h2>🌐 Servidores Candidatos para Coleta de Ping</h2>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">
+            Selecione servidores públicos confiáveis (com localização fixa garantida, evitando anycast/CDNs).
+          </p>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-primary" onclick="addServerRow()">➕ Adicionar Servidor</button>
+          <button onclick="exportServersCSV()">📄 Exportar servers.csv</button>
+        </div>
+      </div>
+
+      <table class="data-table" id="serversTable">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Host / IP</th>
+            <th>Lat</th>
+            <th>Lon</th>
+            <th>Localidade</th>
+            <th>Tipo</th>
+            <th>Status / Ações</th>
+          </tr>
+        </thead>
+        <tbody id="serversTableBody">
+          <!-- Gerado via JS com servidores sugeridos -->
+        </tbody>
+      </table>
+
+      <div class="callout callout-warning" style="margin-top: 16px;">
+        <strong>⚠️ Dica importante contra Anycast:</strong>
+        Não use <code>8.8.8.8</code> (Google) ou <code>1.1.1.1</code> (Cloudflare). Eles respondem de servidores locais em São Paulo mesmo que digam que são dos EUA! Prefira servidores universitários (USP, UFRJ, MIT, Univ. Lisboa), pois as máquinas físicas ficam comprovadamente dentro dos campi universitários.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 5: EXPERIMENTOS -->
+  <div id="tab-experimentos" class="tab-panel">
+    <div class="card">
+      <h2>🔬 Guia dos 5 Experimentos Obrigatórios</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">
+        Estes 5 experimentos compõem todo o miolo de resultados do seu relatório e da sua apresentação.
+      </p>
+
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        
+        <div class="card" style="background:#0f172a; margin:0; border-left:4px solid var(--primary);">
+          <h3 style="margin-top:0;">Exp 01: Convergência de Gauss-Newton e Sensibilidade ao Chute Inicial</h3>
+          <p style="font-size:0.85rem; color:var(--text-muted);">
+            <strong>Objetivo:</strong> Demonstrar a convergência quadrática local e falha em chutes distantes.<br>
+            <strong>Chutes recomendados:</strong> (a) Centro do Brasil (perto da solução), (b) 1.000 km de SP, (c) 3.000 km, (d) Hemisfério Norte (para mostrar divergência/mínimo local).<br>
+            <strong>Gráfico obrigatório:</strong> $\log \|\delta_k\|$ versus iteração $k$.
+          </p>
+        </div>
+
+        <div class="card" style="background:#0f172a; margin:0; border-left:4px solid var(--purple);">
+          <h3 style="margin-top:0;">Exp 02: Equações Normais (Cholesky) vs QR (Householder) em float32 e float64</h3>
+          <p style="font-size:0.85rem; color:var(--text-muted);">
+            <strong>Objetivo:</strong> Provar empiricamente que equações normais perdem precisão com $\kappa(G)^2$.<br>
+            <strong>Procedimento:</strong> Gerar matrizes com $\kappa_2(G)$ variando de $10^0$ a $10^{10}$ usando SVD ($G = U \Sigma V^T$). Resolver $\min \|G \delta + r\|$ pelas duas vias.<br>
+            <strong>Gráfico obrigatório:</strong> Gráfico log-log com 4 curvas (Normais float32, QR float32, Normais float64, QR float64). Apontar onde o float32 das normais explode ($\kappa \approx 3000$).
+          </p>
+        </div>
+
+        <div class="card" style="background:#0f172a; margin:0; border-left:4px solid var(--success);">
+          <h3 style="margin-top:0;">Exp 03: Efeito da Geometria dos Servidores e DOP (Diluição de Precisão)</h3>
+          <p style="font-size:0.85rem; color:var(--text-muted);">
+            <strong>Objetivo:</strong> Demonstrar como a disposição geométrica afeta o número de condição $\kappa(G)$ e o PDOP.<br>
+            <strong>Cenários:</strong> Geometria Boa (servidores cercando o alvo em todas as direções) vs Geometria Ruim (todos os servidores na Europa ou quase alinhados em reta).<br>
+            <strong>Tabela obrigatória:</strong> Geometria | PDOP | GDOP | $\kappa_2(G)$ | Erro RMS de posição.
+          </p>
+        </div>
+
+        <div class="card" style="background:#0f172a; margin:0; border-left:4px solid var(--warning);">
+          <h3 style="margin-top:0;">Exp 04: Validação por Simulação de Monte Carlo</h3>
+          <p style="font-size:0.85rem; color:var(--text-muted);">
+            <strong>Objetivo:</strong> Validar a relação teórica $\text{Erro}_{\text{RMS}} \approx \sigma_{\text{km}} \cdot \text{PDOP}$.<br>
+            <strong>Procedimento:</strong> Para cada geometria, rodar $N = 1000$ iterações com diferentes desvios padrão de ruído ($\sigma \in [0.5, 10]$ ms).<br>
+            <strong>Gráfico obrigatório:</strong> Erro empírico vs $\sigma \cdot \text{PDOP}$ (pontos devem cair sobre a reta $y = x$).
+          </p>
+        </div>
+
+        <div class="card" style="background:#0f172a; margin:0; border-left:4px solid var(--accent);">
+          <h3 style="margin-top:0;">Exp 05: Localização Real com Dados de Ping de São Paulo</h3>
+          <p style="font-size:0.85rem; color:var(--text-muted);">
+            <strong>Objetivo:</strong> Rodar o Gauss-Newton (QR em float64) com as medições reais de ping coletadas.<br>
+            <strong>Discussão esperada:</strong> O erro real será maior que o previsto pelo DOP. Explicar isso pela <em>inflação assimétrica de latência</em> (filas de rede só aumentam o tempo, nunca diminuem). Essa explicação é o ápice da discussão do trabalho!
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 6: ARQUITETURA & FÓRMULAS -->
+  <div id="tab-arquitetura" class="tab-panel">
+    <div class="card">
+      <h2>📐 Fórmulas Matemáticas & Estrutura de Pastas</h2>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div>
+          <h3>Fórmulas Chave do Modelo</h3>
+          <div style="background:#0f172a; padding:12px; border-radius:6px; font-family:monospace; font-size:0.85rem; border:1px solid var(--card-border);">
+            r_i(θ) = d_i(φ, λ) + β - v * t_i<br><br>
+            θ = [φ, λ, β]^T<br>
+            β = v * b (atraso em km)<br>
+            v ≈ 100 km/ms<br><br>
+            G[i, :] = [ ∂d_i/∂φ , ∂d_i/∂λ , 1 ]<br><br>
+            Passo: δ = - (G^T G)^(-1) G^T r<br>
+            Atualização: θ_(k+1) = θ_k + δ
+          </div>
+        </div>
+        <div>
+          <h3>Métricas de Condicionamento & DOP</h3>
+          <div style="background:#0f172a; padding:12px; border-radius:6px; font-family:monospace; font-size:0.85rem; border:1px solid var(--card-border);">
+            Q = (G^T G)^(-1)<br><br>
+            GDOP = sqrt(trace(Q))       # posição + bias b<br>
+            PDOP = sqrt(Q_11 + Q_22)    # apenas latitude/longitude<br><br>
+            κ_2(G) = σ_max(G) / σ_min(G)<br><br>
+            Previsão teórica:<br>
+            Erro_RMS_posicao ≈ σ_ruído * PDOP
+          </div>
+        </div>
+      </div>
+
+      <h3 style="margin-top:20px;">Estrutura do Repositório Sugerida</h3>
+      <pre style="background:#0f172a; padding:12px; border-radius:6px; color:#38bdf8; font-size:0.82rem; overflow-x:auto; border:1px solid var(--card-border);">
+projeto-geoip/
+├── src/
+│   ├── geo.py            # haversine(lat1, lon1, lat2, lon2) -> km
+│   ├── model.py          # residuals(theta, servers, rtt), jacobian(theta, servers)
+│   ├── solvers.py        # solve_normal(), solve_qr(), cholesky(), householder()
+│   ├── gauss_newton.py   # laço principal, critérios de parada, histórico
+│   ├── dop.py            # dop_metrics(G)
+│   ├── synthetic.py      # gerador de servidores e medidas sintéticas
+│   ├── montecarlo.py     # N repetições de Monte Carlo
+│   └── real_data.py      # leitor de logs de ping e filtro min(RTT)
+├── data/
+│   ├── servers.csv       # lista de servidores reais
+│   └── pings_raw/        # logs brutos com timestamp
+├── experiments/          # exp01 a exp05 (scripts reproduzíveis)
+├── tests/                # pytest (test_geo, test_solvers, test_jacobiana)
+└── results/              # CSVs e figuras geradas automaticamente
+      </pre>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast notification -->
+<div id="toast">Alterações salvas com sucesso!</div>
+
+<script>
+  // Initial server database
+  const DEFAULT_SERVERS = [
+    { name: "USP (São Paulo)", host: "usp.br", lat: -23.5614, lon: -46.7308, city: "São Paulo, BR", type: "Universidade", status: "Confirmado" },
+    { name: "UFRJ (Rio de Janeiro)", host: "ufrj.br", lat: -22.8631, lon: -43.2307, city: "Rio de Janeiro, BR", type: "Universidade", status: "Confirmado" },
+    { name: "Unicamp (Campinas)", host: "unicamp.br", lat: -22.8184, lon: -47.0647, city: "Campinas, BR", type: "Universidade", status: "Confirmado" },
+    { name: "UFMG (Belo Horizonte)", host: "ufmg.br", lat: -19.8691, lon: -43.9664, city: "Belo Horizonte, BR", type: "Universidade", status: "Confirmado" },
+    { name: "UFRGS (Porto Alegre)", host: "ufrgs.br", lat: -30.0346, lon: -51.2177, city: "Porto Alegre, BR", type: "Universidade", status: "Confirmado" },
+    { name: "UnB (Brasília)", host: "unb.br", lat: -15.7634, lon: -47.8703, city: "Brasília, BR", type: "Universidade", status: "Confirmado" },
+    { name: "UFPE (Recife)", host: "ufpe.br", lat: -8.0539, lon: -34.9511, city: "Recife, BR", type: "Universidade", status: "Confirmado" },
+    { name: "MIT (Boston, EUA)", host: "mit.edu", lat: 42.3601, lon: -71.0942, city: "Cambridge, EUA", type: "Universidade", status: "Confirmado" },
+    { name: "Univ. Lisboa (Portugal)", host: "ulisboa.pt", lat: 38.7528, lon: -9.1558, city: "Lisboa, PT", type: "Universidade", status: "Confirmado" },
+    { name: "Univ. Tokyo (Japão)", host: "u-tokyo.ac.jp", lat: 35.7128, lon: 139.7619, city: "Tóquio, JP", type: "Universidade", status: "Candidato" },
+    { name: "IX.br (Ponto Neutro SP)", host: "sp.ix.br", lat: -23.5505, lon: -46.6333, city: "São Paulo, BR", type: "IXP", status: "Confirmado" }
+  ];
+
+  let appState = {
+    tasks: {},
+    decisions: {},
+    servers: [...DEFAULT_SERVERS]
+  };
+
+  // Switch tabs
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-panel').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    
+    document.getElementById(tabId).classList.add('active');
+    event.currentTarget.classList.add('active');
+  }
+
+  // Toggle phase accordion
+  function togglePhase(bodyId) {
+    const el = document.getElementById(bodyId);
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  }
+
+  // Task check toggle
+  function toggleTask(taskId) {
+    const item = document.getElementById(taskId);
+    const checkbox = item.querySelector('.task-check');
+    if (checkbox.checked) {
+      item.classList.add('completed');
+      appState.tasks[taskId] = true;
+    } else {
+      item.classList.remove('completed');
+      delete appState.tasks[taskId];
+    }
+    updateProgress();
+    autoSave();
+  }
+
+  // Progress update
+  function updateProgress() {
+    const allTasks = document.querySelectorAll('.task-item');
+    const checked = document.querySelectorAll('.task-check:checked');
+    const total = allTasks.length;
+    const completed = checked.length;
+    const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
+
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('progressPercent').innerText = pct + '%';
+    document.getElementById('taskCountText').innerText = `${completed} / ${total} tarefas`;
+  }
+
+  // Server table rendering
+  function renderServersTable() {
+    const tbody = document.getElementById('serversTableBody');
+    tbody.innerHTML = '';
+    appState.servers.forEach((srv, index) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="text" value="${srv.name}" oninput="updateServer(${index}, 'name', this.value)"></td>
+        <td><input type="text" value="${srv.host}" oninput="updateServer(${index}, 'host', this.value)"></td>
+        <td><input type="number" step="0.0001" value="${srv.lat}" style="width:90px;" oninput="updateServer(${index}, 'lat', parseFloat(this.value))"></td>
+        <td><input type="number" step="0.0001" value="${srv.lon}" style="width:90px;" oninput="updateServer(${index}, 'lon', parseFloat(this.value))"></td>
+        <td><input type="text" value="${srv.city}" oninput="updateServer(${index}, 'city', this.value)"></td>
+        <td>
+          <select onchange="updateServer(${index}, 'type', this.value)">
+            <option ${srv.type === 'Universidade' ? 'selected' : ''}>Universidade</option>
+            <option ${srv.type === 'IXP' ? 'selected' : ''}>IXP</option>
+            <option ${srv.type === 'Datacenter' ? 'selected' : ''}>Datacenter</option>
+          </select>
+        </td>
+        <td>
+          <select onchange="updateServer(${index}, 'status', this.value)" style="width:110px;">
+            <option ${srv.status === 'Confirmado' ? 'selected' : ''}>Confirmado</option>
+            <option ${srv.status === 'Candidato' ? 'selected' : ''}>Candidato</option>
+            <option ${srv.status === 'Ignorado' ? 'selected' : ''}>Ignorado</option>
+          </select>
+          <button style="padding:4px 8px; margin-left:4px; color:#ef4444;" onclick="deleteServer(${index})">✕</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function addServerRow() {
+    appState.servers.push({
+      name: "Novo Servidor",
+      host: "exemplo.com",
+      lat: 0.0,
+      lon: 0.0,
+      city: "Cidade",
+      type: "Universidade",
+      status: "Candidato"
+    });
+    renderServersTable();
+    autoSave();
+  }
+
+  function deleteServer(index) {
+    if (confirm("Remover este servidor da lista?")) {
+      appState.servers.splice(index, 1);
+      renderServersTable();
+      autoSave();
+    }
+  }
+
+  function updateServer(index, field, value) {
+    appState.servers[index][field] = value;
+    autoSave();
+  }
+
+  function exportServersCSV() {
+    let csv = "name,host,lat,lon,city,type,status\n";
+    appState.servers.forEach(s => {
+      csv += `"${s.name}","${s.host}",${s.lat},${s.lon},"${s.city}","${s.type}","${s.status}"\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "servers.csv";
+    link.click();
+  }
+
+  // Toast
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.innerText = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+
+  // Local Storage Save / Load
+  function autoSave() {
+    saveToStorage(false);
+  }
+
+  function saveToStorage(notify = true) {
+    // Collect form fields
+    const inputs = document.querySelectorAll('input[id], select[id], textarea[id]');
+    inputs.forEach(input => {
+      appState.decisions[input.id] = input.value;
+    });
+
+    localStorage.setItem('sdd_geoip_state', JSON.stringify(appState));
+    if (notify) {
+      showToast("Tudo salvo com sucesso!");
+    }
+  }
+
+  function loadFromStorage() {
+    const raw = localStorage.getItem('sdd_geoip_state');
+    if (!raw) {
+      renderServersTable();
+      updateProgress();
+      return;
+    }
+
+    try {
+      appState = JSON.parse(raw);
+      if (!appState.servers || appState.servers.length === 0) {
+        appState.servers = [...DEFAULT_SERVERS];
+      }
+
+      // Restore decisions
+      if (appState.decisions) {
+        for (const [id, val] of Object.entries(appState.decisions)) {
+          const el = document.getElementById(id);
+          if (el) el.value = val;
+        }
+      }
+
+      // Restore tasks
+      if (appState.tasks) {
+        for (const [taskId, isDone] of Object.entries(appState.tasks)) {
+          const item = document.getElementById(taskId);
+          if (item && isDone) {
+            item.querySelector('.task-check').checked = true;
+            item.classList.add('completed');
+          }
+        }
+      }
+
+      renderServersTable();
+      updateProgress();
+    } catch(e) {
+      console.error("Erro ao carregar do localStorage", e);
+    }
+  }
+
+  function exportDataJSON() {
+    saveToStorage(false);
+    const jsonStr = JSON.stringify(appState, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `sdd_geoip_backup_${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    showToast("Arquivo JSON exportado!");
+  }
+
+  function importDataJSON(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        appState = JSON.parse(e.target.result);
+        localStorage.setItem('sdd_geoip_state', JSON.stringify(appState));
+        location.reload();
+      } catch(err) {
+        alert("Erro ao ler JSON: arquivo inválido.");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function resetDefaults() {
+    if (confirm("Tem certeza que deseja restaurar as configurações padrão? Seu progresso salvo será redefinido.")) {
+      localStorage.removeItem('sdd_geoip_state');
+      location.reload();
+    }
+  }
+
+  // Days left counter
+  function updateCountdown() {
+    const deadline = new Date("2026-12-04T23:59:59");
+    const today = new Date();
+    const diffTime = deadline - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const label = document.getElementById('daysLeftText');
+    if (label) {
+      label.innerText = `${diffDays} dias até a entrega`;
+    }
+  }
+
+  // Run on start
+  window.addEventListener('DOMContentLoaded', () => {
+    loadFromStorage();
+    updateCountdown();
+  });
+</script>
+
+</body>
+</html>
