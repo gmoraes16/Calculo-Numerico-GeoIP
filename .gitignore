@@ -17,3 +17,13 @@ Desktop.ini
 .DS_Store
 *.tmp
 *.log
+
+# Logs brutos de ping (mantidos apenas localmente; o consolidado data/historico_pings.csv sobe no GitHub)
+data/pings_raw/
+
+# Arquivos pessoais / organização interna (mantidos apenas localmente no PC)
+painel_projeto_geoip.html
+SDD_Projeto_Geolocalizacao_IP.md
+DOCUMENTACAO_DO_PROJETO.md
+verificar_status.py
+*.bat
