@@ -1,1 +1,5 @@
-
+chute_nome,lat0,lon0,dist_inicial_km,convergiu,iteracoes,erro_final_km,residuo_final
+Campinas (proximo),-22.9099,-47.0626,83.7,True,3,31.903,121.0334
+Brasilia (medio),-15.7975,-47.8919,872.1,True,4,31.903,121.0334
+Manaus (distante),-3.1190,-60.0217,2689.5,True,5,31.903,121.0334
+Londres (extremo),51.5074,-0.1278,9497.4,False,4,12779.957,67366.2364
